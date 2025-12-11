@@ -8,6 +8,8 @@ import com.example.bookstore.book.entity.Book;
 import com.example.bookstore.book.repository.BookRepository;
 import com.example.bookstore.common.exception.CustomException;
 import com.example.bookstore.common.exception.ErrorCode;
+import com.example.bookstore.review.repository.ReviewRepository;
+import com.example.bookstore.wishlist.repository.WishlistRepository;
 import com.example.bookstore.seller.entity.Seller;
 import com.example.bookstore.seller.repository.SellerRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,8 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final SellerRepository sellerRepository;
+    private final ReviewRepository reviewRepository;
+    private final WishlistRepository wishlistRepository;
 
     @Transactional
     public BookResponse createBook(BookCreateRequest request) {
@@ -53,7 +57,7 @@ public class BookService {
                 .build();
 
         Book saved = bookRepository.save(book);
-        return BookResponse.from(saved);
+        return BookResponse.from(saved, null, 0);
     }
 
     public BookResponse getBook(Long bookId) {
@@ -62,7 +66,7 @@ public class BookService {
                         ErrorCode.RESOURCE_NOT_FOUND,
                         Map.of("bookId", "도서를 찾을 수 없습니다.")
                 ));
-        return BookResponse.from(book);
+        return BookResponse.from(book, getRatingAvg(book), getLikeCount(book));
     }
 
     public Page<BookResponse> getBooks(BookSearchCondition cond, Pageable pageable) {
@@ -75,7 +79,11 @@ public class BookService {
                 cond.dateTo(),
                 pageable
         );
-        return page.map(BookResponse::from);
+        return page.map(book -> BookResponse.from(
+                book,
+                getRatingAvg(book),
+                getLikeCount(book)
+        ));
     }
 
     @Transactional
@@ -95,7 +103,7 @@ public class BookService {
                 request.summary()
         );
 
-        return BookResponse.from(book);
+        return BookResponse.from(book, getRatingAvg(book), getLikeCount(book));
     }
 
     @Transactional
@@ -117,6 +125,26 @@ public class BookService {
                 ));
 
         Page<Book> page = bookRepository.findBySeller(seller, pageable);
-        return page.map(BookResponse::from);
+        return page.map(b -> BookResponse.from(
+                b,
+                getRatingAvg(b),
+                getLikeCount(b)
+        ));
+    }
+
+    private Double getRatingAvg(Book book) {
+        var reviews = reviewRepository.findAllByBook(book);
+        if (reviews.isEmpty()) {
+            return null;
+        }
+        double avg = reviews.stream()
+                .mapToInt(r -> r.getRating() != null ? r.getRating() : 0)
+                .average()
+                .orElse(0.0);
+        return Math.round(avg * 10) / 10.0;
+    }
+
+    private Integer getLikeCount(Book book) {
+        return (int) wishlistRepository.countByBook(book);
     }
 }
