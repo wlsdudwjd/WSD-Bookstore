@@ -34,7 +34,7 @@ public class AdminUserInitializer implements CommandLineRunner {
                 .address("어딘가 관리자 집")
                 .gender(Gender.MALE)
                 .birthday(LocalDate.of(1990, 1, 1))
-                .role(Role.ROLE_ADMIN)
+                .role(Role.ADMIN)
                 .build();
 
         userRepository.save(admin);

@@ -1,86 +1,85 @@
 package com.example.bookstore.auth.jwt;
 
 import com.example.bookstore.config.JwtConfig;
-import com.example.bookstore.user.entity.Role;
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
-import java.util.Collections;
+import javax.crypto.SecretKey;   // ★ 여기 중요!
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
+@RequiredArgsConstructor
 public class JwtProvider {
 
-    private static final String CLAIM_ROLE = "role";
-
     private final JwtConfig jwtConfig;
-    private final Key key;
+    private final JwtUserDetailsService userDetailsService;
 
-    public JwtProvider(JwtConfig jwtConfig) {
-        this.jwtConfig = jwtConfig;
-        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(toBase64(jwtConfig.getSecret())));
+    // ★ Key → SecretKey 로 변경
+    private SecretKey key;
+
+    @PostConstruct
+    void init() {
+        // 시크릿 문자열을 이용해 HMAC 키 생성
+        this.key = Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
-    private String toBase64(String secret) {
-        // secret이 이미 base64가 아니라고 가정하고 간단히 encoding
-        return java.util.Base64.getEncoder().encodeToString(secret.getBytes());
+    public String createAccessToken(String email, String role) {
+        return createToken(email, role, jwtConfig.getAccessTokenExpirationMillis());
     }
 
-    public String generateAccessToken(String email, Role role) {
+    public String createRefreshToken(String email, String role) {
+        return createToken(email, role, jwtConfig.getRefreshTokenExpirationMillis());
+    }
+
+    private String createToken(String email, String role, long validityMillis) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + jwtConfig.getAccessTokenExpirationMs());
+        Date expiry = new Date(now.getTime() + validityMillis);
 
         return Jwts.builder()
-                .setSubject(email)
-                .claim(CLAIM_ROLE, role.name())
-                .setIssuedAt(now)
-                .setExpiration(expiry)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
-    }
-
-    public String generateRefreshToken(String email, Role role) {
-        Date now = new Date();
-        Date expiry = new Date(now.getTime() + jwtConfig.getRefreshTokenExpirationMs());
-
-        return Jwts.builder()
-                .setSubject(email)
-                .claim(CLAIM_ROLE, role.name())
-                .setIssuedAt(now)
-                .setExpiration(expiry)
-                .signWith(key, SignatureAlgorithm.HS256)
+                .subject(email)
+                .claim("role", role)
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(key)   // SecretKey 사용
                 .compact();
     }
 
     public boolean validateToken(String token) {
         try {
-            parseClaims(token);
+            Jwts.parser()
+                    .verifyWith(key)   // 이제 타입 맞음
+                    .build()
+                    .parseSignedClaims(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (Exception e) {
             return false;
         }
     }
 
-    private Claims parseClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
+    public String getEmail(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
+        return claims.getSubject();
     }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = parseClaims(token);
-        String email = claims.getSubject();
-        String roleName = claims.get(CLAIM_ROLE, String.class);
-
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(roleName);
-        return new UsernamePasswordAuthenticationToken(email, token, Collections.singletonList(authority));
+        String email = getEmail(token);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        return new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
     }
 }

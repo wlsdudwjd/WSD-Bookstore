@@ -83,4 +83,27 @@ public class User {
     public void deactivate() {
         this.active = false;
     }
+
+    public static User createUser(
+            String email,
+            String encodedPassword,
+            String name,
+            String phoneNumber,
+            String address,
+            Gender gender,
+            LocalDate birthday,
+            Role role
+    ) {
+        return User.builder()
+                .email(email)
+                .password(encodedPassword)
+                .name(name)
+                .phoneNumber(phoneNumber)
+                .address(address)
+                .gender(gender)
+                .birthday(birthday)
+                .role(role)
+                .active(true)
+                .build();
+    }
 }

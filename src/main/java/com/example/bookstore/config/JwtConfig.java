@@ -1,37 +1,19 @@
 package com.example.bookstore.config;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "jwt")
+@Getter
+@Setter
 public class JwtConfig {
 
     private String secret;
-    private long accessTokenExpirationMs;
-    private long refreshTokenExpirationMs;
 
-    public String getSecret() {
-        return secret;
-    }
+    private long accessTokenExpirationMillis;
 
-    public void setSecret(String secret) {
-        this.secret = secret;
-    }
-
-    public long getAccessTokenExpirationMs() {
-        return accessTokenExpirationMs;
-    }
-
-    public void setAccessTokenExpirationMs(long accessTokenExpirationMs) {
-        this.accessTokenExpirationMs = accessTokenExpirationMs;
-    }
-
-    public long getRefreshTokenExpirationMs() {
-        return refreshTokenExpirationMs;
-    }
-
-    public void setRefreshTokenExpirationMs(long refreshTokenExpirationMs) {
-        this.refreshTokenExpirationMs = refreshTokenExpirationMs;
-    }
+    private long refreshTokenExpirationMillis;
 }
