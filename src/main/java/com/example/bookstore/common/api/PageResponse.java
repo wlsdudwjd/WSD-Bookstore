@@ -1,26 +1,31 @@
 package com.example.bookstore.common.api;
 
-import org.springframework.data.domain.Page;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-public record PageResponse<T>(
-        List<T> content,
-        int page,
-        int size,
-        long totalElements,
-        int totalPages,
-        String sort
-) {
-    public static <T> PageResponse<T> from(Page<T> page) {
-        String sort = page.getSort().toString(); // ex) "createdAt: DESC"
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+public class PageResponse<T> {
+
+    private int page;
+    private int size;
+    private long totalElements;
+    private int totalPages;
+    private List<T> content;
+
+    public static <T> PageResponse<T> from(
+            org.springframework.data.domain.Page<T> pageData
+    ) {
         return new PageResponse<>(
-                page.getContent(),
-                page.getNumber(),
-                page.getSize(),
-                page.getTotalElements(),
-                page.getTotalPages(),
-                sort
+                pageData.getNumber(),
+                pageData.getSize(),
+                pageData.getTotalElements(),
+                pageData.getTotalPages(),
+                pageData.getContent()
         );
     }
 }
