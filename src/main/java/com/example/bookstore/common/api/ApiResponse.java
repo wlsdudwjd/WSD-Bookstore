@@ -1,16 +1,13 @@
 package com.example.bookstore.common.api;
 
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-@Builder
 public record ApiResponse<T>(
         boolean success,
+        @JsonInclude(JsonInclude.Include.NON_NULL)
         T data
 ) {
     public static <T> ApiResponse<T> ok(T data) {
-        return ApiResponse.<T>builder()
-                .success(true)
-                .data(data)
-                .build();
+        return new ApiResponse<>(true, data);
     }
 }

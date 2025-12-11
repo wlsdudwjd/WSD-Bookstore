@@ -24,6 +24,9 @@ public class User {
     @Column(nullable = false, length = 20)
     private Role role;
 
+    @Column(nullable = false)
+    private Boolean active;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
@@ -61,10 +64,23 @@ public class User {
     public void onCreate() {
         this.createdAt = DateUtil.now();
         this.updatedAt = DateUtil.now();
+        if (this.active == null) {
+            this.active = true;
+        }
     }
 
     @PreUpdate
     public void onUpdate() {
         this.updatedAt = DateUtil.now();
+    }
+
+    public void changeProfile(String name, String phoneNumber, String address) {
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
+    }
+
+    public void deactivate() {
+        this.active = false;
     }
 }

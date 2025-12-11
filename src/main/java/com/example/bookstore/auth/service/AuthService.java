@@ -60,6 +60,13 @@ public class AuthService {
                         Map.of("email", request.email())
                 ));
 
+        if (!Boolean.TRUE.equals(user.getActive())) {
+            throw new CustomException(
+                    ErrorCode.STATE_CONFLICT,
+                    Map.of("reason", "deactivated user")
+            );
+        }
+
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new CustomException(
                     ErrorCode.UNAUTHORIZED,

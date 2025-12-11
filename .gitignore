@@ -39,3 +39,4 @@ out/
 .env
 
 /src/main/resources/application.yml
+/src/main/java/com/example/bookstore/AdminUserInitializer.java
