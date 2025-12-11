@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Table(
-        name = "users",
+        name = "user",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_user_email", columnNames = "email"),
                 @UniqueConstraint(name = "uk_user_phone_number", columnNames = "phone_number")
