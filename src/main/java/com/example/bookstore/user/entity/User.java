@@ -75,13 +75,23 @@ public class User {
     }
 
     public void changeProfile(String name, String phoneNumber, String address) {
-        this.name = name;
-        this.phoneNumber = phoneNumber;
-        this.address = address;
+        if (name != null && !name.isBlank()) {
+            this.name = name;
+        }
+        if (phoneNumber != null && !phoneNumber.isBlank()) {
+            this.phoneNumber = phoneNumber;
+        }
+        if (address != null && !address.isBlank()) {
+            this.address = address;
+        }
     }
 
     public void deactivate() {
         this.active = false;
+    }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
     }
 
     public static User createUser(

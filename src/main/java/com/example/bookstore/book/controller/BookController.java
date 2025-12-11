@@ -30,7 +30,7 @@ public class BookController {
     public ApiResponse<BookResponse> createBook(
             @RequestBody @Valid BookCreateRequest request
     ) {
-        return ApiResponse.created(bookService.createBook(request));
+        return ApiResponse.success("도서가 등록되었습니다.", bookService.createBook(request));
     }
 
     // ============================
@@ -39,7 +39,7 @@ public class BookController {
     @GetMapping("/{bookId}")
     @Operation(summary = "도서 상세 조회", description = "도서 ID로 상세 정보를 조회합니다.")
     public ApiResponse<BookResponse> getBook(@PathVariable Long bookId) {
-        return ApiResponse.ok(bookService.getBook(bookId));
+        return ApiResponse.success("조회 성공", bookService.getBook(bookId));
     }
 
     // ============================
@@ -70,7 +70,7 @@ public class BookController {
         );
 
         var page = bookService.getBooks(cond, pageable);
-        return ApiResponse.ok(PageResponse.from(page));
+        return ApiResponse.success("조회 성공", PageResponse.from(page));
     }
 
     // ============================
@@ -83,7 +83,7 @@ public class BookController {
             @PathVariable Long bookId,
             @RequestBody @Valid BookUpdateRequest request
     ) {
-        return ApiResponse.ok(bookService.updateBook(bookId, request));
+        return ApiResponse.success("도서가 수정되었습니다.", bookService.updateBook(bookId, request));
     }
 
     // ============================
@@ -94,7 +94,7 @@ public class BookController {
     @Operation(summary = "도서 삭제 (ADMIN)", description = "도서를 삭제합니다.")
     public ApiResponse<Void> deleteBook(@PathVariable Long bookId) {
         bookService.deleteBook(bookId);
-        return ApiResponse.noContent();
+        return ApiResponse.success("도서가 삭제되었습니다.");
     }
 
     // ============================
@@ -108,6 +108,6 @@ public class BookController {
             Pageable pageable
     ) {
         var page = bookService.getBooksBySeller(sellerId, pageable);
-        return ApiResponse.ok(PageResponse.from(page));
+        return ApiResponse.success("조회 성공", PageResponse.from(page));
     }
 }

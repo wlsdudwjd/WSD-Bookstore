@@ -4,23 +4,30 @@ import com.example.bookstore.user.entity.Gender;
 import com.example.bookstore.user.entity.User;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record UserProfileResponse(
+        Long userId,
         String email,
         String name,
         String phoneNumber,
         String address,
         Gender gender,
-        LocalDate birthday
+        LocalDate birthday,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
     public static UserProfileResponse from(User user) {
         return new UserProfileResponse(
+                user.getUserId(),
                 user.getEmail(),
                 user.getName(),
                 user.getPhoneNumber(),
                 user.getAddress(),
                 user.getGender(),
-                user.getBirthday()
+                user.getBirthday(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
         );
     }
 }

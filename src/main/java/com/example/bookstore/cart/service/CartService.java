@@ -4,6 +4,7 @@ import com.example.bookstore.book.entity.Book;
 import com.example.bookstore.book.repository.BookRepository;
 import com.example.bookstore.cart.dto.CartItemRequest;
 import com.example.bookstore.cart.dto.CartItemResponse;
+import com.example.bookstore.cart.dto.CartItemUpsertResponse;
 import com.example.bookstore.cart.dto.CartResponse;
 import com.example.bookstore.cart.entity.Cart;
 import com.example.bookstore.cart.entity.CartItem;
@@ -11,6 +12,7 @@ import com.example.bookstore.cart.repository.CartItemRepository;
 import com.example.bookstore.cart.repository.CartRepository;
 import com.example.bookstore.common.exception.CustomException;
 import com.example.bookstore.common.exception.ErrorCode;
+import com.example.bookstore.common.util.DateUtil;
 import com.example.bookstore.user.entity.User;
 import com.example.bookstore.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,9 +42,9 @@ public class CartService {
         return CartResponse.of(items);
     }
 
-    // 아이템 추가/증가
+    // 아이템 upsert (절대 수량 지정, 0이면 삭제)
     @Transactional
-    public CartResponse addItem(Long userId, CartItemRequest request) {
+    public CartItemUpsertResponse upsertItem(Long userId, CartItemRequest request) {
         Cart cart = getOrCreateCart(userId);
 
         Book book = bookRepository.findById(request.bookId())
@@ -51,29 +53,36 @@ public class CartService {
                         Map.of("bookId", "도서를 찾을 수 없습니다.")
                 ));
 
-        CartItem item = cartItemRepository.findByCartAndBook(cart, book)
-                .orElseGet(() -> {
-                    CartItem newItem = CartItem.builder()
-                            .cart(cart)
-                            .book(book)
-                            .quantity(0)
-                            .unitPrice(book.getPrice())
-                            .subtotal(0)
-                            .build();
-                    cart.addItem(newItem);
-                    return newItem;
-                });
+        CartItem item = cartItemRepository.findByCartAndBook(cart, book).orElse(null);
 
-        int newQuantity = item.getQuantity() + request.quantity();
-        item.changeQuantity(newQuantity);
+        if (request.quantity() <= 0) {
+            if (item != null) {
+                cart.removeItem(item);
+                cartItemRepository.delete(item);
+            }
+            return new CartItemUpsertResponse(null, 0, DateUtil.now());
+        }
+
+        if (item == null) {
+            item = CartItem.builder()
+                    .cart(cart)
+                    .book(book)
+                    .quantity(request.quantity())
+                    .unitPrice(book.getPrice())
+                    .subtotal(book.getPrice() * request.quantity())
+                    .build();
+            cart.addItem(item);
+        } else {
+            item.changeQuantity(request.quantity());
+        }
 
         cartItemRepository.save(item);
 
-        List<CartItemResponse> items = cart.getItems()
-                .stream()
-                .map(CartItemResponse::from)
-                .toList();
-        return CartResponse.of(items);
+        return new CartItemUpsertResponse(
+                item.getCartItemId(),
+                item.getQuantity(),
+                DateUtil.now()
+        );
     }
 
     // 수량 변경 (절대값으로 세팅)

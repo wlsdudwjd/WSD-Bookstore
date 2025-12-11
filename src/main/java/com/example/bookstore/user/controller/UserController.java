@@ -27,7 +27,7 @@ public class UserController {
     @GetMapping("/me")
     @Operation(summary = "내 정보 조회", description = "현재 로그인한 사용자의 프로필 정보를 조회합니다.")
     public ApiResponse<UserProfileResponse> getMyProfile() {
-        return ApiResponse.ok(userService.getMyProfile());
+        return ApiResponse.success("조회 성공", userService.getMyProfile());
     }
 
     @PatchMapping("/me")
@@ -35,7 +35,14 @@ public class UserController {
     public ApiResponse<UserProfileResponse> updateMyProfile(
             @RequestBody @Valid UserUpdateRequest request
     ) {
-        return ApiResponse.ok(userService.updateMyProfile(request));
+        return ApiResponse.success("프로필이 수정되었습니다.", userService.updateMyProfile(request));
+    }
+
+    @DeleteMapping("/me")
+    @Operation(summary = "계정 삭제", description = "현재 로그인한 사용자의 계정을 삭제(비활성화)합니다.")
+    public ApiResponse<Void> deleteMyAccount() {
+        userService.deleteMyAccount();
+        return ApiResponse.success("계정이 삭제되었습니다.");
     }
 
     @GetMapping
@@ -46,7 +53,7 @@ public class UserController {
             Pageable pageable
     ) {
         var page = userService.getUserList(pageable);
-        return ApiResponse.ok(PageResponse.from(page));
+        return ApiResponse.success("조회 성공", PageResponse.from(page));
     }
 
 
@@ -54,7 +61,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "유저 단건 조회 (ADMIN)", description = "관리자가 특정 유저 정보를 조회합니다.")
     public ApiResponse<UserResponse> getUserById(@PathVariable Long userId) {
-        return ApiResponse.ok(userService.getUserById(userId));
+        return ApiResponse.success("조회 성공", userService.getUserById(userId));
     }
 
     @PatchMapping("/{userId}/deactivate")
@@ -62,6 +69,6 @@ public class UserController {
     @Operation(summary = "유저 비활성화 (ADMIN)", description = "관리자가 유저를 비활성화 처리합니다.")
     public ApiResponse<Void> deactivateUser(@PathVariable Long userId) {
         userService.deactivateUser(userId);
-        return ApiResponse.noContent();
+        return ApiResponse.success("계정을 비활성화했습니다.");
     }
 }

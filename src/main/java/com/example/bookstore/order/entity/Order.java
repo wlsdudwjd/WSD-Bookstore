@@ -27,8 +27,8 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // 총 금액 (컬럼명이 total_amout 인 경우 주의)
-    @Column(name = "total_amout", nullable = false)
+    // 총 금액
+    @Column(name = "total_amount", nullable = false)
     private Integer totalAmount;
 
     @Enumerated(EnumType.STRING)

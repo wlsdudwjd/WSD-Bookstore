@@ -3,11 +3,11 @@ package com.example.bookstore.auth.service;
 import com.example.bookstore.auth.dto.LoginRequest;
 import com.example.bookstore.auth.dto.LoginResponse;
 import com.example.bookstore.auth.dto.SignupRequest;
+import com.example.bookstore.auth.dto.SignupResponse;
 import com.example.bookstore.auth.dto.TokenResponse;
 import com.example.bookstore.auth.jwt.JwtProvider;
 import com.example.bookstore.common.exception.CustomException;
 import com.example.bookstore.common.exception.ErrorCode;
-import com.example.bookstore.user.entity.Gender;
 import com.example.bookstore.user.entity.Role;
 import com.example.bookstore.user.entity.User;
 import com.example.bookstore.user.repository.UserRepository;
@@ -27,7 +27,7 @@ public class AuthService {
     private final JwtProvider jwtProvider;
 
     @Transactional
-    public void signup(SignupRequest request) {
+    public SignupResponse signup(SignupRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new CustomException(
                     ErrorCode.DUPLICATE_RESOURCE,
@@ -52,7 +52,8 @@ public class AuthService {
                 Role.USER                // 너 Role enum 값에 맞게 USER / ROLE_USER 중 골라
         );
 
-        userRepository.save(user);
+        User saved = userRepository.save(user);
+        return new SignupResponse(saved.getUserId(), saved.getCreatedAt());
     }
 
     @Transactional
@@ -81,7 +82,15 @@ public class AuthService {
                 user.getRole().name()
         );
 
-        return new LoginResponse(accessToken, refreshToken);
+        return new LoginResponse(
+                accessToken,
+                refreshToken,
+                new LoginResponse.UserInfo(
+                        user.getUserId(),
+                        user.getName(),
+                        user.getRole().name().toLowerCase()
+                )
+        );
     }
 
     @Transactional
@@ -106,12 +115,19 @@ public class AuthService {
                 user.getEmail(),
                 user.getRole().name()
         );
-        String newRefreshToken = jwtProvider.createRefreshToken(
-                user.getUserId(),
-                user.getEmail(),
-                user.getRole().name()
-        );
 
-        return new TokenResponse(newAccessToken, newRefreshToken);
+        return new TokenResponse(newAccessToken);
+    }
+
+    @Transactional(readOnly = true)
+    public void logout(String refreshToken) {
+        // 실제 환경에서는 refreshToken을 블랙리스트에 저장하거나 DB에 보관 후 무효화해야 한다.
+        // 현재는 별도 저장소가 없으므로 유효성만 확인한 뒤 성공 응답을 내려준다.
+        if (refreshToken != null && !refreshToken.isBlank() && !jwtProvider.validateToken(refreshToken)) {
+            throw new CustomException(
+                    ErrorCode.INVALID_REQUEST,
+                    Map.of("refreshToken", "유효하지 않은 토큰입니다.")
+            );
+        }
     }
 }

@@ -12,9 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.Map;
 
@@ -24,42 +24,17 @@ import java.util.Map;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // ======== 내 프로필 조회 ========
     public UserProfileResponse getMyProfile() {
-        Long userId = SecurityUtil.getCurrentUserId();
-        if (userId == null) {
-            throw new CustomException(
-                    ErrorCode.UNAUTHORIZED,
-                    Map.of("auth", "인증 정보가 없습니다.")
-            );
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(
-                        ErrorCode.USER_NOT_FOUND,
-                        Map.of("userId", String.valueOf(userId))
-                ));
-
-        return UserProfileResponse.from(user);
+        return UserProfileResponse.from(getCurrentUser());
     }
 
     // ======== 내 프로필 수정 ========
     @Transactional
     public UserProfileResponse updateMyProfile(UserUpdateRequest request) {
-        Long userId = SecurityUtil.getCurrentUserId();
-        if (userId == null) {
-            throw new CustomException(
-                    ErrorCode.UNAUTHORIZED,
-                    Map.of("auth", "인증 정보가 없습니다.")
-            );
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(
-                        ErrorCode.USER_NOT_FOUND,
-                        Map.of("userId", String.valueOf(userId))
-                ));
+        User user = getCurrentUser();
 
         // 이름 / 전화번호 / 주소 변경
         user.changeProfile(
@@ -67,6 +42,10 @@ public class UserService {
                 request.phoneNumber(),
                 request.address()
         );
+
+        if (request.password() != null && !request.password().isBlank()) {
+            user.changePassword(passwordEncoder.encode(request.password()));
+        }
 
         return UserProfileResponse.from(user);
     }
@@ -108,5 +87,27 @@ public class UserService {
                         Map.of("userId", String.valueOf(userId))
                 ));
         return UserResponse.from(user);
+    }
+
+    @Transactional
+    public void deleteMyAccount() {
+        User user = getCurrentUser();
+        user.deactivate();
+    }
+
+    private User getCurrentUser() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        if (userId == null) {
+            throw new CustomException(
+                    ErrorCode.UNAUTHORIZED,
+                    Map.of("auth", "인증 정보가 없습니다.")
+            );
+        }
+
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.USER_NOT_FOUND,
+                        Map.of("userId", String.valueOf(userId))
+                ));
     }
 }

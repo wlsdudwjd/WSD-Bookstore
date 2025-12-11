@@ -9,7 +9,7 @@ public record CartItemRequest(
         Long bookId,
 
         @NotNull
-        @Min(1)
+        @Min(0)
         Integer quantity
 ) {
 }

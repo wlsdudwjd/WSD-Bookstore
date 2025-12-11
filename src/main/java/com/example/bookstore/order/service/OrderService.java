@@ -8,6 +8,7 @@ import com.example.bookstore.common.util.SecurityUtil;
 import com.example.bookstore.order.dto.OrderCreateRequest;
 import com.example.bookstore.order.dto.OrderCreateResponse;
 import com.example.bookstore.order.dto.OrderItemRequest;
+import com.example.bookstore.order.dto.OrderResponse;
 import com.example.bookstore.order.entity.Order;
 import com.example.bookstore.order.entity.OrderItem;
 import com.example.bookstore.order.repository.OrderRepository;
@@ -66,5 +67,23 @@ public class OrderService {
                 saved.getCreatedAt(),
                 saved.getStatus().name().toLowerCase() // created / paid ...
         );
+    }
+
+    public OrderResponse getOrder(Long orderId) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.RESOURCE_NOT_FOUND,
+                        Map.of("orderId", "주문을 찾을 수 없습니다.")
+                ));
+
+        if (!order.getUser().getUserId().equals(currentUserId)) {
+            throw new CustomException(
+                    ErrorCode.FORBIDDEN,
+                    Map.of("orderId", "해당 주문에 접근할 수 없습니다.")
+            );
+        }
+
+        return OrderResponse.from(order);
     }
 }
