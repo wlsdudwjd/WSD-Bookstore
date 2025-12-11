@@ -11,7 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;   // ★ 여기 중요!
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
@@ -22,62 +22,71 @@ public class JwtProvider {
     private final JwtConfig jwtConfig;
     private final JwtUserDetailsService userDetailsService;
 
-    // ★ Key → SecretKey 로 변경
     private SecretKey key;
 
     @PostConstruct
     void init() {
-        // 시크릿 문자열을 이용해 HMAC 키 생성
         this.key = Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
-    public String createAccessToken(String email, String role) {
-        return createToken(email, role, jwtConfig.getAccessTokenExpirationMillis());
+    // userId 기반 토큰 생성
+    public String createAccessToken(Long userId, String email, String role) {
+        return createToken(userId, email, role, jwtConfig.getAccessTokenExpirationMillis());
     }
 
-    public String createRefreshToken(String email, String role) {
-        return createToken(email, role, jwtConfig.getRefreshTokenExpirationMillis());
+    public String createRefreshToken(Long userId, String email, String role) {
+        return createToken(userId, email, role, jwtConfig.getRefreshTokenExpirationMillis());
     }
 
-    private String createToken(String email, String role, long validityMillis) {
+    private String createToken(Long userId, String email, String role, long validityMillis) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + validityMillis);
 
         return Jwts.builder()
-                .subject(email)
+                .subject(String.valueOf(userId))
+                .claim("email", email)
                 .claim("role", role)
                 .issuedAt(now)
                 .expiration(expiry)
-                .signWith(key)   // SecretKey 사용
+                .signWith(key)
                 .compact();
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(key)   // 이제 타입 맞음
-                    .build()
-                    .parseSignedClaims(token);
+            parseClaims(token);
             return true;
         } catch (Exception e) {
             return false;
         }
     }
 
+    public Long getUserId(String token) {
+        Claims claims = parseClaims(token);
+        return Long.parseLong(claims.getSubject());
+    }
+
     public String getEmail(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-        return claims.getSubject();
+        Claims claims = parseClaims(token);
+        return claims.get("email", String.class);
     }
 
     public Authentication getAuthentication(String token) {
+        Long userId = getUserId(token);
         String email = getEmail(token);
+
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
         return new UsernamePasswordAuthenticationToken(
-                userDetails,
+                userId,
                 null,
                 userDetails.getAuthorities()
         );

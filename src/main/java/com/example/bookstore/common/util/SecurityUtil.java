@@ -3,16 +3,23 @@ package com.example.bookstore.common.util;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-public final class SecurityUtil {
+public class SecurityUtil {
 
-    private SecurityUtil() {
-    }
-
-    public static String getCurrentUserEmailOrNull() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal() == null) {
+    public static Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null) {
             return null;
         }
-        return authentication.getName(); // JwtProvider에서 email을 principal로 썼음
+
+        Object principal = auth.getPrincipal();
+
+        if (principal instanceof Long l) {
+            return l;
+        }
+        try {
+            return Long.parseLong(principal.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

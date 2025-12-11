@@ -1,6 +1,5 @@
 package com.example.bookstore.user.service;
 
-import com.example.bookstore.common.api.PageResponse;
 import com.example.bookstore.common.exception.CustomException;
 import com.example.bookstore.common.exception.ErrorCode;
 import com.example.bookstore.common.util.SecurityUtil;
@@ -10,10 +9,13 @@ import com.example.bookstore.user.dto.UserUpdateRequest;
 import com.example.bookstore.user.entity.User;
 import com.example.bookstore.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.Map;
 
 @Service
@@ -23,92 +25,88 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    // ======== 내 프로필 조회 ========
     public UserProfileResponse getMyProfile() {
-        String email = SecurityUtil.getCurrentUserEmailOrNull();
-        if (email == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED, Map.of("reason", "anonymous"));
+        Long userId = SecurityUtil.getCurrentUserId();
+        if (userId == null) {
+            throw new CustomException(
+                    ErrorCode.UNAUTHORIZED,
+                    Map.of("auth", "인증 정보가 없습니다.")
+            );
         }
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(
                         ErrorCode.USER_NOT_FOUND,
-                        Map.of("email", email)
+                        Map.of("userId", String.valueOf(userId))
                 ));
 
-        return new UserProfileResponse(
-                user.getUserId(),
-                user.getEmail(),
-                user.getName(),
-                user.getPhoneNumber(),
-                user.getAddress(),
-                user.getGender(),
-                user.getBirthday(),
-                user.getRole()
-        );
+        return UserProfileResponse.from(user);
     }
 
+    // ======== 내 프로필 수정 ========
     @Transactional
-    public void updateMyProfile(UserUpdateRequest request) {
-        String email = SecurityUtil.getCurrentUserEmailOrNull();
-        if (email == null) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED, Map.of("reason", "anonymous"));
+    public UserProfileResponse updateMyProfile(UserUpdateRequest request) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        if (userId == null) {
+            throw new CustomException(
+                    ErrorCode.UNAUTHORIZED,
+                    Map.of("auth", "인증 정보가 없습니다.")
+            );
         }
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(
                         ErrorCode.USER_NOT_FOUND,
-                        Map.of("email", email)
+                        Map.of("userId", String.valueOf(userId))
                 ));
 
-        user.changeProfile(request.name(), request.phoneNumber(), request.address());
+        // 이름 / 전화번호 / 주소 변경
+        user.changeProfile(
+                request.name(),
+                request.phoneNumber(),
+                request.address()
+        );
+
+        return UserProfileResponse.from(user);
     }
 
-    public PageResponse<UserResponse> getUsers(int page, int size, String sortParam) {
-        Sort sort = Sort.by("createdAt").descending();
-        if (sortParam != null && !sortParam.isBlank()) {
-            // 예: sort=name,ASC
-            String[] parts = sortParam.split(",");
-            String property = parts[0];
-            Sort.Direction direction = parts.length > 1 && "ASC".equalsIgnoreCase(parts[1])
-                    ? Sort.Direction.ASC
-                    : Sort.Direction.DESC;
-            sort = Sort.by(direction, property);
+    // ======== (ADMIN) 유저 목록 조회 ========
+    public Page<UserResponse> getUsers(int page, int size, String sort) {
+        Sort sortSpec = Sort.by(Sort.Direction.DESC, "createdAt");
+        if (sort != null && !sort.isBlank()) {
+            // "createdAt,ASC" 같은 형식 처리하고 있다면 여기에서 파싱
         }
 
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<User> users = userRepository.findAll(pageable);
+        PageRequest pageRequest = PageRequest.of(page, size, sortSpec);
+        Page<User> users = userRepository.findAll(pageRequest);
 
-        Page<UserResponse> mapped = users.map(user -> new UserResponse(
-                user.getUserId(),
-                user.getEmail(),
-                user.getName(),
-                user.getPhoneNumber(),
-                user.getAddress(),
-                user.getGender(),
-                user.getBirthday(),
-                user.getRole(),
-                user.getActive(),
-                user.getCreatedAt()
-        ));
-
-        return PageResponse.from(mapped);
+        return users.map(UserResponse::from);
     }
 
+    // ======== (ADMIN) 유저 비활성화 ========
     @Transactional
     public void deactivateUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(
                         ErrorCode.USER_NOT_FOUND,
-                        Map.of("userId", userId)
+                        Map.of("userId", String.valueOf(userId))
                 ));
-
-        if (!Boolean.TRUE.equals(user.getActive())) {
-            throw new CustomException(
-                    ErrorCode.STATE_CONFLICT,
-                    Map.of("reason", "already deactivated")
-            );
-        }
-
         user.deactivate();
+    }
+
+    public Page<UserResponse> getUserList(Pageable pageable) {
+
+        Page<User> users = userRepository.findAll(pageable);
+        return users.map(UserResponse::from);
+    }
+
+    public UserResponse getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.USER_NOT_FOUND,
+                        Map.of("userId", String.valueOf(userId))
+                ));
+        return UserResponse.from(user);
     }
 }

@@ -40,3 +40,4 @@ out/
 
 /src/main/resources/application.yml
 /src/main/java/com/example/bookstore/AdminUserInitializer.java
+/src/main/java/com/example/bookstore/TestDataInitializer.java

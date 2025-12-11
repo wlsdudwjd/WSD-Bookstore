@@ -4,7 +4,7 @@ import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
-public record BookCreateRequest(
+public record BookUpdateRequest(
 
         @NotBlank
         @Size(max = 255)
@@ -18,10 +18,6 @@ public record BookCreateRequest(
         @Size(max = 255)
         String publisher,
 
-        @NotBlank
-        @Size(max = 20)
-        String isbn,
-
         @NotNull
         @Positive
         Integer price,
@@ -30,9 +26,6 @@ public record BookCreateRequest(
         LocalDate publicationDate,
 
         @Size(max = 4000)
-        String summary,
-
-        @NotNull
-        Long sellerId
+        String summary
 ) {
 }
