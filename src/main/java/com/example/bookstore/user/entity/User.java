@@ -1,10 +1,17 @@
 package com.example.bookstore.user.entity;
 
-import com.example.bookstore.common.entity.BaseTimeEntity;
+import com.example.bookstore.common.util.DateUtil;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @Table(
         name = "user",
         uniqueConstraints = {
@@ -12,36 +19,49 @@ import lombok.*;
                 @UniqueConstraint(name = "uk_user_phone_number", columnNames = "phone_number")
         }
 )
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
-public class User extends BaseTimeEntity {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    private Long id;
-
-    @Column(nullable = false, length = 100)
-    private String name;
+    private Long userId;
 
     @Column(nullable = false, length = 255)
     private String email;
 
     @Column(nullable = false, length = 255)
-    private String password; // 나중에 password_hash로 바꿔도 됨
+    private String password;
 
-    @Column(nullable = false)
-    private java.time.LocalDate birthday;
+    @Column(nullable = false, length = 100)
+    private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
-    private Gender gender;
+    @Column(nullable = false, length = 20)
+    private String phoneNumber;
 
     @Column(nullable = false, length = 255)
     private String address;
 
-    @Column(name = "phone_number", nullable = false, length = 20)
-    private String phoneNumber;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Gender gender;
+
+    @Column(nullable = false)
+    private LocalDate birthday;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = DateUtil.now();
+        this.updatedAt = DateUtil.now();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = DateUtil.now();
+    }
 }
