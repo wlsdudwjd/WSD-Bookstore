@@ -1,4 +1,6 @@
 package com.example.bookstore.auth.dto;
 
-public class TokenResponse {
+public record TokenResponse(
+        String accessToken
+) {
 }
