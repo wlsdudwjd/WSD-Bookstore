@@ -1,30 +1,39 @@
 package com.example.bookstore.auth;
 
+import com.example.bookstore.auth.dto.LoginResponse;
+import com.example.bookstore.auth.dto.SignupResponse;
+import com.example.bookstore.auth.dto.TokenResponse;
+import com.example.bookstore.common.api.ApiResponse;
+import com.example.bookstore.support.IntegrationTestSupport;
 import com.example.bookstore.user.entity.Gender;
 import com.example.bookstore.user.entity.Role;
 import com.example.bookstore.user.entity.User;
 import com.example.bookstore.user.repository.UserRepository;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.UUID;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Transactional
-class AuthIntegrationTest {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    @Autowired
-    WebTestClient webTestClient;
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@Transactional
+class AuthIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     UserRepository userRepository;
@@ -32,8 +41,7 @@ class AuthIntegrationTest {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    protected final RestTemplate client = this.restTemplate;
 
     private String email;
     private final String password = "P@ssw0rd1!";
@@ -45,49 +53,50 @@ class AuthIntegrationTest {
 
     @Test
     @DisplayName("회원가입 후 로그인까지 성공한다")
-    void signupThenLogin() throws Exception {
-        String signupBody = """
-                {
-                  "email": "%s",
-                  "password": "%s",
-                  "name": "tester",
-                  "phoneNumber": "01012345678",
-                  "address": "Seoul",
-                  "gender": "MALE",
-                  "birthday": "1990-01-01"
-                }
-                """.formatted(email, password);
+    void signupThenLogin() {
+        Map<String, Object> signupBody = Map.of(
+                "email", email,
+                "password", password,
+                "name", "tester",
+                "phoneNumber", "01012345678",
+                "address", "Seoul",
+                "gender", "MALE",
+                "birthday", "1990-01-01"
+        );
 
-        webTestClient.post()
-                .uri("/auth/signup")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(signupBody)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.data.email").isEqualTo(email);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> signupRequest = new HttpEntity<>(signupBody, headers);
+        ResponseEntity<ApiResponse<SignupResponse>> signupRes = client.exchange(
+                url("/auth/signup"),
+                HttpMethod.POST,
+                signupRequest,
+                new ParameterizedTypeReference<>() {}
+        );
 
-        String loginBody = """
-                {
-                  "email": "%s",
-                  "password": "%s"
-                }
-                """.formatted(email, password);
+        assertThat(signupRes.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(userRepository.findByEmail(email)).isPresent();
 
-        webTestClient.post()
-                .uri("/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(loginBody)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.data.accessToken").isNotEmpty()
-                .jsonPath("$.data.refreshToken").isNotEmpty();
+        HttpEntity<Map<String, Object>> loginRequest = new HttpEntity<>(
+                Map.of("email", email, "password", password),
+                headers
+        );
+        ResponseEntity<ApiResponse<LoginResponse>> loginRes = client.exchange(
+                url("/auth/login"),
+                HttpMethod.POST,
+                loginRequest,
+                new ParameterizedTypeReference<>() {}
+        );
+
+        assertThat(loginRes.getStatusCode()).isEqualTo(HttpStatus.OK);
+        LoginResponse loginData = loginRes.getBody().getData();
+        assertThat(loginData.accessToken()).isNotBlank();
+        assertThat(loginData.refreshToken()).isNotBlank();
     }
 
     @Test
     @DisplayName("잘못된 비밀번호는 401을 반환한다")
-    void loginFailsWithWrongPassword() throws Exception {
+    void loginFailsWithWrongPassword() {
         User user = User.createUser(
                 email,
                 passwordEncoder.encode(password),
@@ -100,80 +109,58 @@ class AuthIntegrationTest {
         );
         userRepository.save(user);
 
-        String wrongLogin = """
-                {
-                  "email": "%s",
-                  "password": "wrong-password"
-                }
-                """.formatted(email);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> wrongLogin = new HttpEntity<>(
+                Map.of("email", email, "password", "wrong-password"),
+                headers
+        );
 
-        webTestClient.post()
-                .uri("/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(wrongLogin)
-                .exchange()
-                .expectStatus().isUnauthorized();
+        ResponseEntity<String> res = client.postForEntity(url("/auth/login"), wrongLogin, String.class);
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
     @DisplayName("Refresh 토큰으로 Access 토큰을 재발급한다")
-    void refreshToken() throws Exception {
-        String signupBody = """
-                {
-                  "email": "%s",
-                  "password": "%s",
-                  "name": "tester",
-                  "phoneNumber": "01012345678",
-                  "address": "Seoul",
-                  "gender": "MALE",
-                  "birthday": "1990-01-01"
-                }
-                """.formatted(email, password);
-
-        webTestClient.post()
-                .uri("/auth/signup")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(signupBody)
-                .exchange()
-                .expectStatus().isOk();
-
-        String loginBody = """
-                {
-                  "email": "%s",
-                  "password": "%s"
-                }
-                """.formatted(email, password);
-
-        JsonNode loginJson = objectMapper.readTree(
-                webTestClient.post()
-                        .uri("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(loginBody)
-                        .exchange()
-                        .expectStatus().isOk()
-                        .expectBody()
-                        .returnResult()
-                        .getResponseBodyContent()
+    void refreshToken() {
+        Map<String, Object> signupBody = Map.of(
+                "email", email,
+                "password", password,
+                "name", "tester",
+                "phoneNumber", "01012345678",
+                "address", "Seoul",
+                "gender", "MALE",
+                "birthday", "1990-01-01"
         );
-        String refreshToken = loginJson.path("data").path("refreshToken").asText();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        client.postForEntity(url("/auth/signup"), new HttpEntity<>(signupBody, headers), String.class);
 
-        webTestClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/auth/refresh")
-                        .queryParam("refreshToken", refreshToken)
-                        .build())
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.data.accessToken").isNotEmpty()
-                .jsonPath("$.data.refreshToken").isNotEmpty();
+        ResponseEntity<ApiResponse<LoginResponse>> loginRes = client.exchange(
+                url("/auth/login"),
+                HttpMethod.POST,
+                new HttpEntity<>(Map.of("email", email, "password", password), headers),
+                new ParameterizedTypeReference<>() {}
+        );
+
+        String refreshToken = loginRes.getBody().getData().refreshToken();
+
+        ResponseEntity<ApiResponse<TokenResponse>> refreshRes = client.exchange(
+                url("/auth/refresh?refreshToken=" + refreshToken),
+                HttpMethod.POST,
+                null,
+                new ParameterizedTypeReference<>() {}
+        );
+
+        assertThat(refreshRes.getStatusCode()).isEqualTo(HttpStatus.OK);
+        TokenResponse tokenData = refreshRes.getBody().getData();
+        assertThat(tokenData.accessToken()).isNotBlank();
     }
 
     @Test
     @DisplayName("Health 엔드포인트는 200 OK를 반환한다")
-    void healthCheck() throws Exception {
-        webTestClient.get()
-                .uri("/health")
-                .exchange()
-                .expectStatus().isOk();
+    void healthCheck() {
+        ResponseEntity<String> res = client.getForEntity(url("/health"), String.class);
+        assertThat(res.getStatusCode().is2xxSuccessful()).isTrue();
     }
 }
