@@ -3,9 +3,9 @@
 Spring Boot 기반 온라인 서점 백엔드입니다. JWT 인증/인가, 도서·장바구니·주문·리뷰·댓글·위시리스트 등을 제공합니다.
 
 ## 배포 정보
-- Base URL: [113.198.66.68:10118](http://113.198.66.68:10118)
-- Swagger: [113.198.66.68:10118/swagger-ui/index.html](http://113.198.66.68:10118/swagger-ui/index.html)
-- Health: [113.198.66.68:10118/health](http://113.198.66.68:10118/health)
+- Base URL: [http://113.198.66.68:10118](http://113.198.66.68:10118)
+- Swagger: [http://113.198.66.68:10118/swagger-ui/index.html](http://113.198.66.68:10118/swagger-ui/index.html)
+- Health: [http://113.198.66.68:10118/health](http://113.198.66.68:10118/health)
 
 ## 응답 규격
 - 성공
