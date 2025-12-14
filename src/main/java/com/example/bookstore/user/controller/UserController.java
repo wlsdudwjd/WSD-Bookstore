@@ -60,14 +60,14 @@ public class UserController {
     @GetMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "유저 단건 조회 (ADMIN)", description = "관리자가 특정 유저 정보를 조회합니다.")
-    public ApiResponse<UserResponse> getUserById(@PathVariable Long userId) {
+    public ApiResponse<UserResponse> getUserById(@PathVariable Integer userId) {
         return ApiResponse.success("조회 성공", userService.getUserById(userId));
     }
 
     @PatchMapping("/{userId}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "유저 비활성화 (ADMIN)", description = "관리자가 유저를 비활성화 처리합니다.")
-    public ApiResponse<Void> deactivateUser(@PathVariable Long userId) {
+    public ApiResponse<Void> deactivateUser(@PathVariable Integer userId) {
         userService.deactivateUser(userId);
         return ApiResponse.success("계정을 비활성화했습니다.");
     }

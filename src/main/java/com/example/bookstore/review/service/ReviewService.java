@@ -106,7 +106,7 @@ public class ReviewService {
 
     private Review getOwnReview(Long reviewId) {
         Review review = getReview(reviewId);
-        Long currentUserId = SecurityUtil.getCurrentUserId();
+        Integer currentUserId = SecurityUtil.getCurrentUserId();
         if (!review.getUser().getUserId().equals(currentUserId)) {
             throw new CustomException(
                     ErrorCode.FORBIDDEN,
@@ -125,7 +125,7 @@ public class ReviewService {
     }
 
     private User getCurrentUser() {
-        Long userId = SecurityUtil.getCurrentUserId();
+        Integer userId = SecurityUtil.getCurrentUserId();
         if (userId == null) {
             throw new CustomException(
                     ErrorCode.UNAUTHORIZED,

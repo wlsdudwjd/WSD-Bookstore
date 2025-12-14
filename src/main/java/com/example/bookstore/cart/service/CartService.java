@@ -33,7 +33,7 @@ public class CartService {
     private final BookRepository bookRepository;
 
     // 유저의 장바구니 조회
-    public CartResponse getMyCart(Long userId) {
+    public CartResponse getMyCart(Integer userId) {
         Cart cart = getOrCreateCart(userId);
         List<CartItemResponse> items = cart.getItems()
                 .stream()
@@ -44,7 +44,7 @@ public class CartService {
 
     // 아이템 upsert (절대 수량 지정, 0이면 삭제)
     @Transactional
-    public CartItemUpsertResponse upsertItem(Long userId, CartItemRequest request) {
+    public CartItemUpsertResponse upsertItem(Integer userId, CartItemRequest request) {
         Cart cart = getOrCreateCart(userId);
 
         Book book = bookRepository.findById(request.bookId())
@@ -87,7 +87,7 @@ public class CartService {
 
     // 수량 변경 (절대값으로 세팅)
     @Transactional
-    public CartResponse updateItemQuantity(Long userId, Long cartItemId, int quantity) {
+    public CartResponse updateItemQuantity(Integer userId, Long cartItemId, int quantity) {
         if (quantity <= 0) {
             // 0 이하이면 그냥 삭제
             removeItem(userId, cartItemId);
@@ -121,7 +121,7 @@ public class CartService {
 
     // 아이템 삭제
     @Transactional
-    public void removeItem(Long userId, Long cartItemId) {
+    public void removeItem(Integer userId, Long cartItemId) {
         Cart cart = getOrCreateCart(userId);
 
         CartItem item = cartItemRepository.findById(cartItemId)
@@ -143,7 +143,7 @@ public class CartService {
 
     // 전체 비우기
     @Transactional
-    public void clearCart(Long userId) {
+    public void clearCart(Integer userId) {
         Cart cart = getOrCreateCart(userId);
         cart.getItems().clear();
     }
@@ -152,7 +152,7 @@ public class CartService {
     // 내부 헬퍼
     // ======================
     @Transactional
-    protected Cart getOrCreateCart(Long userId) {
+    protected Cart getOrCreateCart(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(
                         ErrorCode.USER_NOT_FOUND,

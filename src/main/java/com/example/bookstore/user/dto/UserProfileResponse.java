@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record UserProfileResponse(
-        Long userId,
+        Integer userId,
         String email,
         String name,
         String phoneNumber,

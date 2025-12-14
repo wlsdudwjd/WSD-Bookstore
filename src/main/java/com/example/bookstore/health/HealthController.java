@@ -18,6 +18,6 @@ public class HealthController {
                 "app", "bookstore-api",
                 "version", "v1"
         );
-        return ApiResponse.ok(status);
+        return ApiResponse.success("health ok", status);
     }
 }

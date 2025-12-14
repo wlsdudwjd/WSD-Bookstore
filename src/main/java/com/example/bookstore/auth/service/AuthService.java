@@ -102,7 +102,7 @@ public class AuthService {
             );
         }
 
-        Long userId = jwtProvider.getUserId(refreshToken);
+        Integer userId = jwtProvider.getUserId(refreshToken);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(

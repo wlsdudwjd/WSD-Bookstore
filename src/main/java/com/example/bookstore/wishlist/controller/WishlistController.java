@@ -21,21 +21,21 @@ public class WishlistController {
     @PostMapping
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ApiResponse<WishlistAddResponse> add(@RequestBody @Valid WishlistRequest request) {
-        Long userId = SecurityUtil.getCurrentUserId();
+        Integer userId = SecurityUtil.getCurrentUserId();
         return ApiResponse.success("위시리스트에 추가되었습니다.", wishlistService.add(userId, request));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ApiResponse<WishlistListResponse> getList() {
-        Long userId = SecurityUtil.getCurrentUserId();
+        Integer userId = SecurityUtil.getCurrentUserId();
         return ApiResponse.success("조회 성공", wishlistService.getList(userId));
     }
 
     @DeleteMapping("/{favoriteId}")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ApiResponse<Void> remove(@PathVariable Long favoriteId) {
-        Long userId = SecurityUtil.getCurrentUserId();
+        Integer userId = SecurityUtil.getCurrentUserId();
         wishlistService.remove(userId, favoriteId);
         return ApiResponse.success("위시리스트에서 삭제되었습니다.");
     }

@@ -5,7 +5,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public class SecurityUtil {
 
-    public static Long getCurrentUserId() {
+    public static Integer getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getPrincipal() == null) {
             return null;
@@ -13,11 +13,11 @@ public class SecurityUtil {
 
         Object principal = auth.getPrincipal();
 
-        if (principal instanceof Long l) {
-            return l;
+        if (principal instanceof Integer i) {
+            return i;
         }
         try {
-            return Long.parseLong(principal.toString());
+            return Integer.parseInt(principal.toString());
         } catch (NumberFormatException e) {
             return null;
         }

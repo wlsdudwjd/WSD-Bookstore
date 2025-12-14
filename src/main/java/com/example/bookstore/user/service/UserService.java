@@ -65,7 +65,7 @@ public class UserService {
 
     // ======== (ADMIN) 유저 비활성화 ========
     @Transactional
-    public void deactivateUser(Long userId) {
+    public void deactivateUser(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(
                         ErrorCode.USER_NOT_FOUND,
@@ -80,7 +80,7 @@ public class UserService {
         return users.map(UserResponse::from);
     }
 
-    public UserResponse getUserById(Long userId) {
+    public UserResponse getUserById(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(
                         ErrorCode.USER_NOT_FOUND,
@@ -96,7 +96,7 @@ public class UserService {
     }
 
     private User getCurrentUser() {
-        Long userId = SecurityUtil.getCurrentUserId();
+        Integer userId = SecurityUtil.getCurrentUserId();
         if (userId == null) {
             throw new CustomException(
                     ErrorCode.UNAUTHORIZED,

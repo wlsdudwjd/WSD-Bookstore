@@ -30,15 +30,15 @@ public class JwtProvider {
     }
 
     // userId 기반 토큰 생성
-    public String createAccessToken(Long userId, String email, String role) {
+    public String createAccessToken(Integer userId, String email, String role) {
         return createToken(userId, email, role, jwtConfig.getAccessTokenExpirationMillis());
     }
 
-    public String createRefreshToken(Long userId, String email, String role) {
+    public String createRefreshToken(Integer userId, String email, String role) {
         return createToken(userId, email, role, jwtConfig.getRefreshTokenExpirationMillis());
     }
 
-    private String createToken(Long userId, String email, String role, long validityMillis) {
+    private String createToken(Integer userId, String email, String role, long validityMillis) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + validityMillis);
 
@@ -69,9 +69,9 @@ public class JwtProvider {
         }
     }
 
-    public Long getUserId(String token) {
+    public Integer getUserId(String token) {
         Claims claims = parseClaims(token);
-        return Long.parseLong(claims.getSubject());
+        return Integer.parseInt(claims.getSubject());
     }
 
     public String getEmail(String token) {
@@ -80,7 +80,7 @@ public class JwtProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        Long userId = getUserId(token);
+        Integer userId = getUserId(token);
         String email = getEmail(token);
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);

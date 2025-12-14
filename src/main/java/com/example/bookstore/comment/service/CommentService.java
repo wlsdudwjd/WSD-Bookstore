@@ -115,7 +115,7 @@ public class CommentService {
 
     private Comment getOwnComment(Long commentId) {
         Comment comment = getComment(commentId);
-        Long userId = SecurityUtil.getCurrentUserId();
+        Integer userId = SecurityUtil.getCurrentUserId();
         if (!comment.getUser().getUserId().equals(userId)) {
             throw new CustomException(
                     ErrorCode.FORBIDDEN,
@@ -134,7 +134,7 @@ public class CommentService {
     }
 
     private User getCurrentUser() {
-        Long userId = SecurityUtil.getCurrentUserId();
+        Integer userId = SecurityUtil.getCurrentUserId();
         if (userId == null) {
             throw new CustomException(
                     ErrorCode.UNAUTHORIZED,

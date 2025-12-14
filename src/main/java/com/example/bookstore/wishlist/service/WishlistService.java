@@ -29,7 +29,7 @@ public class WishlistService {
     private final BookRepository bookRepository;
 
     @Transactional
-    public WishlistAddResponse add(Long userId, WishlistRequest request) {
+    public WishlistAddResponse add(Integer userId, WishlistRequest request) {
         User user = getUser(userId);
         Book book = bookRepository.findById(request.bookId())
                 .orElseThrow(() -> new CustomException(
@@ -51,7 +51,7 @@ public class WishlistService {
         return new WishlistAddResponse(saved.getFavoriteId(), saved.getCreatedAt());
     }
 
-    public WishlistListResponse getList(Long userId) {
+    public WishlistListResponse getList(Integer userId) {
         User user = getUser(userId);
         List<WishlistItemResponse> items = wishlistRepository.findAllByUser(user).stream()
                 .map(WishlistItemResponse::from)
@@ -60,7 +60,7 @@ public class WishlistService {
     }
 
     @Transactional
-    public void remove(Long userId, Long favoriteId) {
+    public void remove(Integer userId, Long favoriteId) {
         User user = getUser(userId);
         Wishlist wishlist = wishlistRepository.findById(favoriteId)
                 .orElseThrow(() -> new CustomException(
@@ -78,7 +78,7 @@ public class WishlistService {
         wishlistRepository.delete(wishlist);
     }
 
-    private User getUser(Long userId) {
+    private User getUser(Integer userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(
                         ErrorCode.USER_NOT_FOUND,

@@ -39,7 +39,7 @@ public class OrderService {
             );
         }
 
-        Long userId = SecurityUtil.getCurrentUserId();
+        Integer userId = SecurityUtil.getCurrentUserId();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(
                         ErrorCode.USER_NOT_FOUND,
@@ -70,7 +70,7 @@ public class OrderService {
     }
 
     public OrderResponse getOrder(Long orderId) {
-        Long currentUserId = SecurityUtil.getCurrentUserId();
+        Integer currentUserId = SecurityUtil.getCurrentUserId();
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new CustomException(
                         ErrorCode.RESOURCE_NOT_FOUND,
