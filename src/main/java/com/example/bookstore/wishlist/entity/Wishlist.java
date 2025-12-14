@@ -25,15 +25,16 @@ import java.time.LocalDateTime;
 )
 public class Wishlist {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long favoriteId;
+    @EmbeddedId
+    private WishlistId id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @MapsId("userId")
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @MapsId("bookId")
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 

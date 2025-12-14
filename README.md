@@ -60,7 +60,7 @@ Spring Boot 기반 온라인 서점 백엔드입니다. JWT 인증/인가, 도�
 **Wishlist (/wishlist)**  
 - POST `/wishlist`  
 - GET `/wishlist`  
-- DELETE `/wishlist/{favoriteId}`  
+- DELETE `/wishlist/{bookId}`  
 
 **Reviews (/reviews)**  
 - POST `/reviews`  

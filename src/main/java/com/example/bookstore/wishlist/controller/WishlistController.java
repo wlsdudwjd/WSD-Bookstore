@@ -32,11 +32,11 @@ public class WishlistController {
         return ApiResponse.success("조회 성공", wishlistService.getList(userId));
     }
 
-    @DeleteMapping("/{favoriteId}")
+    @DeleteMapping("/{bookId}")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    public ApiResponse<Void> remove(@PathVariable Long favoriteId) {
+    public ApiResponse<Void> remove(@PathVariable Long bookId) {
         Integer userId = SecurityUtil.getCurrentUserId();
-        wishlistService.remove(userId, favoriteId);
+        wishlistService.remove(userId, bookId);
         return ApiResponse.success("위시리스트에서 삭제되었습니다.");
     }
 }

@@ -21,15 +21,16 @@ import lombok.*;
 )
 public class CommentLike {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @EmbeddedId
+    private CommentLikeId id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @MapsId("userId")
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @MapsId("commentId")
     @JoinColumn(name = "comment_id", nullable = false)
     private Comment comment;
 }

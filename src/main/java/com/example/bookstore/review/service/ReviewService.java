@@ -10,6 +10,7 @@ import com.example.bookstore.review.dto.ReviewResponse;
 import com.example.bookstore.review.dto.ReviewUpdateRequest;
 import com.example.bookstore.review.entity.Review;
 import com.example.bookstore.review.entity.ReviewLike;
+import com.example.bookstore.review.entity.ReviewLikeId;
 import com.example.bookstore.review.repository.ReviewLikeRepository;
 import com.example.bookstore.review.repository.ReviewRepository;
 import com.example.bookstore.user.entity.User;
@@ -83,6 +84,7 @@ public class ReviewService {
 
         reviewLikeRepository.save(
                 ReviewLike.builder()
+                        .id(new ReviewLikeId(user.getUserId(), review.getReviewId()))
                         .user(user)
                         .review(review)
                         .build()

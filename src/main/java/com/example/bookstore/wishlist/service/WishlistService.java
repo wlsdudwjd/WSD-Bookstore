@@ -39,7 +39,7 @@ public class WishlistService {
 
         Wishlist existing = wishlistRepository.findByUserAndBook(user, book).orElse(null);
         if (existing != null) {
-            return new WishlistAddResponse(existing.getFavoriteId(), existing.getCreatedAt());
+            return new WishlistAddResponse(existing.getBook().getBookId(), existing.getCreatedAt());
         }
 
         Wishlist wishlist = Wishlist.builder()
@@ -48,7 +48,7 @@ public class WishlistService {
                 .build();
 
         Wishlist saved = wishlistRepository.save(wishlist);
-        return new WishlistAddResponse(saved.getFavoriteId(), saved.getCreatedAt());
+        return new WishlistAddResponse(saved.getBook().getBookId(), saved.getCreatedAt());
     }
 
     public WishlistListResponse getList(Integer userId) {
@@ -60,20 +60,18 @@ public class WishlistService {
     }
 
     @Transactional
-    public void remove(Integer userId, Long favoriteId) {
+    public void remove(Integer userId, Long bookId) {
         User user = getUser(userId);
-        Wishlist wishlist = wishlistRepository.findById(favoriteId)
+        Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new CustomException(
                         ErrorCode.RESOURCE_NOT_FOUND,
-                        Map.of("favoriteId", "위시리스트 항목을 찾을 수 없습니다.")
+                        Map.of("bookId", "도서를 찾을 수 없습니다.")
                 ));
-
-        if (!wishlist.getUser().getUserId().equals(user.getUserId())) {
-            throw new CustomException(
-                    ErrorCode.FORBIDDEN,
-                    Map.of("favoriteId", "해당 위시리스트 항목에 접근할 수 없습니다.")
-            );
-        }
+        Wishlist wishlist = wishlistRepository.findByUserAndBook(user, book)
+                .orElseThrow(() -> new CustomException(
+                        ErrorCode.RESOURCE_NOT_FOUND,
+                        Map.of("bookId", "위시리스트 항목을 찾을 수 없습니다.")
+                ));
 
         wishlistRepository.delete(wishlist);
     }

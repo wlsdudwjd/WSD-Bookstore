@@ -3,12 +3,13 @@ package com.example.bookstore.wishlist.repository;
 import com.example.bookstore.book.entity.Book;
 import com.example.bookstore.user.entity.User;
 import com.example.bookstore.wishlist.entity.Wishlist;
+import com.example.bookstore.wishlist.entity.WishlistId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
+public interface WishlistRepository extends JpaRepository<Wishlist, WishlistId> {
 
     Optional<Wishlist> findByUserAndBook(User user, Book book);
 

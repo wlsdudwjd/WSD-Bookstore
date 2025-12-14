@@ -4,6 +4,7 @@ import com.example.bookstore.comment.dto.CommentDto;
 import com.example.bookstore.comment.dto.CommentCreateResponse;
 import com.example.bookstore.comment.entity.Comment;
 import com.example.bookstore.comment.entity.CommentLike;
+import com.example.bookstore.comment.entity.CommentLikeId;
 import com.example.bookstore.comment.repository.CommentLikeRepository;
 import com.example.bookstore.comment.repository.CommentRepository;
 import com.example.bookstore.common.exception.CustomException;
@@ -82,10 +83,13 @@ public class CommentService {
         if (commentLikeRepository.findByUserAndComment(user, comment).isPresent()) {
             return comment.getLikeCount();
         }
-        commentLikeRepository.save(CommentLike.builder()
-                .user(user)
-                .comment(comment)
-                .build());
+        commentLikeRepository.save(
+                CommentLike.builder()
+                        .id(new CommentLikeId(user.getUserId(), comment.getCommentId()))
+                        .user(user)
+                        .comment(comment)
+                        .build()
+        );
         comment.increaseLike();
         return comment.getLikeCount();
     }
