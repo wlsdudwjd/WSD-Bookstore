@@ -10,10 +10,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/wishlist")
 @RequiredArgsConstructor
+@Tag(name = "Wishlist", description = "위시리스트 API")
 public class WishlistController {
 
     private final WishlistService wishlistService;

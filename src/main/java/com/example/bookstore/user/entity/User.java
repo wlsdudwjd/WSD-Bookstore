@@ -46,7 +46,6 @@ public class User {
     @Column(nullable = false, length = 255)
     private String address;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gender gender;
 

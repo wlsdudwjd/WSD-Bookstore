@@ -25,24 +25,33 @@ import java.time.LocalDateTime;
 )
 public class Wishlist {
 
-    @EmbeddedId
-    private WishlistId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "wishlist_id")
+    private Integer wishlistId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @MapsId("userId")
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @MapsId("bookId")
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
     @PrePersist
     public void onCreate() {
         this.createdAt = DateUtil.now();
+        this.updatedAt = DateUtil.now();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = DateUtil.now();
     }
 }

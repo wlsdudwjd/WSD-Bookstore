@@ -83,8 +83,8 @@ Spring Boot 기반 온라인 서점 백엔드입니다. JWT 인증/인가, 도�
 - GET `/settlements/sellers/{sellerId}` : 정산 정보(샘플)  
 
 ### Swagger UI 캡처:
-  - ![Swagger UI 1](static/swagger.png)
-  - ![Swagger UI 2](static/swagger2.png)
+  - ![Swagger UI 1](docs/swagger.png)
+  - ![Swagger UI 2](docs/swagger2.png)
 
 ## 실행 방법
 **요구사항**: JDK 25, MySQL 8.x  
@@ -117,10 +117,10 @@ java -jar build/libs/bookstore-0.0.1-SNAPSHOT.jar \
 
 ## JCloud 서버 준비
 Ubuntu 기준 설치 커맨드입니다. 이미 설치되어 있다면 건너뛰세요.
-- Java 21+ (OpenJDK):  
+- Java 25 (OpenJDK):  
   ```bash
   sudo apt update
-  sudo apt install -y openjdk-21-jdk
+  sudo apt install -y openjdk-25-jdk
   java -version
   ```
 - MySQL 8.x:  
@@ -176,6 +176,6 @@ module.exports = {
 ```
 
 ## 추가 자료
-- API 설계서(PDF): `static/API-docs.pdf`
+- API 설계서(PDF): `docs/API-design.pdf`
 
 ```
