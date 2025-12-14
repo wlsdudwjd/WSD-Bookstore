@@ -51,6 +51,7 @@ public class ReviewService {
         Review review = Review.builder()
                 .user(user)
                 .book(book)
+                .comment(request.content())
                 .content(request.content())
                 .rating(request.rating())
                 .likeCount(0)
@@ -84,7 +85,7 @@ public class ReviewService {
 
         reviewLikeRepository.save(
                 ReviewLike.builder()
-                        .id(new ReviewLikeId(user.getUserId(), review.getReviewId()))
+                        .id(new ReviewLikeId(user.getUserId(), review.getReviewId().intValue()))
                         .user(user)
                         .review(review)
                         .build()

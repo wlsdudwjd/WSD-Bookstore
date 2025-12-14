@@ -18,9 +18,9 @@ public class ReviewLikeId implements Serializable {
     private Integer userId;
 
     @Column(name = "review_id")
-    private Long reviewId;
+    private Integer reviewId;
 
-    public ReviewLikeId(Integer userId, Long reviewId) {
+    public ReviewLikeId(Integer userId, Integer reviewId) {
         this.userId = userId;
         this.reviewId = reviewId;
     }

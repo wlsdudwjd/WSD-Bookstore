@@ -26,11 +26,11 @@ public class CommentLike {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId("userId")
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false, columnDefinition = "INT")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId("commentId")
-    @JoinColumn(name = "comment_id", nullable = false)
+    @JoinColumn(name = "comment_id", nullable = false, columnDefinition = "INT")
     private Comment comment;
 }

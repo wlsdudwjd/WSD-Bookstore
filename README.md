@@ -99,20 +99,13 @@ DB_PASSWORD=<mysql-비밀번호>
 JWT_SECRET=<긴 비밀키>
 ```
 
-## 빌드/테스트
+## 빌드 및 서버 배포 준비
 ```
-./gradlew clean build
-./gradlew test
-```
+./gradlew clean bootJar -x test 
 
-**로컬 실행 예시**
-```
-./gradlew clean build -x test
-java -jar build/libs/bookstore-0.0.1-SNAPSHOT.jar \
-  --spring.datasource.url="jdbc:mysql://$DB_HOST:$DB_PORT/$DB_NAME?serverTimezone=Asia/Seoul&characterEncoding=UTF-8" \
-  --spring.datasource.username=$DB_USERNAME \
-  --spring.datasource.password=$DB_PASSWORD \
-  --server.port=10023
+scp -i jjy.pem -P 19188 \
+  build/libs/bookstore-0.0.1-SNAPSHOT.jar \
+  ubuntu@113.198.66.68:/home/ubuntu
 ```
 
 ## JCloud 서버 준비
@@ -128,9 +121,6 @@ Ubuntu 기준 설치 커맨드입니다. 이미 설치되어 있다면 건너뛰
   sudo apt install -y mysql-server
   sudo systemctl enable --now mysql
   sudo mysql_secure_installation
-  # DB/계정 생성 예시
-  mysql -u root -p -e "CREATE DATABASE bookstore CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-  mysql -u root -p -e "CREATE USER 'jjy'@'%' IDENTIFIED BY '123'; GRANT ALL PRIVILEGES ON bookstore.* TO 'jjy'@'%'; FLUSH PRIVILEGES;"
   ```
 - Node/npm & PM2 (무중단 구동):  
   ```bash
@@ -140,10 +130,7 @@ Ubuntu 기준 설치 커맨드입니다. 이미 설치되어 있다면 건너뛰
   ```
 - PM2 실행 예시(서버에서):  
   ```bash
-  pm2 start "java -jar /home/ubuntu/bookstore-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod" --name bookstore \
-    --env DB_HOST=localhost --env DB_PORT=3306 --env DB_NAME=bookstore \
-    --env DB_USERNAME=jjy --env DB_PASSWORD=123 \
-    --env JWT_SECRET="your-32bytes-or-longer-secret"
+  pm2 start ecosystem.config.js
   pm2 save
   pm2 startup    # 재부팅 후 자동 시작 등록
   ```
@@ -177,5 +164,6 @@ module.exports = {
 
 ## 추가 자료
 - API 설계서(PDF): `docs/API-design.pdf`
+- DB 설계서(PDF): `docs/DB-docs.pdf`
 
 ```

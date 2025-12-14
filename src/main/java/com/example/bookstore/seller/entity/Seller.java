@@ -16,6 +16,7 @@ public class Seller {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "seller_id", columnDefinition = "INT")
     private Long sellerId;
 
     @Column(nullable = false, length = 255)

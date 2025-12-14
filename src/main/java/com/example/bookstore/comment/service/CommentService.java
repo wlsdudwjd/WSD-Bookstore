@@ -85,7 +85,7 @@ public class CommentService {
         }
         commentLikeRepository.save(
                 CommentLike.builder()
-                        .id(new CommentLikeId(user.getUserId(), comment.getCommentId()))
+                        .id(new CommentLikeId(user.getUserId(), comment.getCommentId().intValue()))
                         .user(user)
                         .comment(comment)
                         .build()

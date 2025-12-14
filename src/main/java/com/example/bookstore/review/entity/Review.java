@@ -27,15 +27,19 @@ public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "review_id", columnDefinition = "INT")
     private Long reviewId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "book_id", nullable = false)
+    @JoinColumn(name = "book_id", nullable = false, columnDefinition = "INT")
     private Book book;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false, columnDefinition = "INT")
     private User user;
+
+    @Column(name = "comment", nullable = false, columnDefinition = "TEXT")
+    private String comment;
 
     @Column(nullable = false, length = 1000)
     private String content;
@@ -69,6 +73,7 @@ public class Review {
     public void update(String content, Integer rating) {
         if (content != null && !content.isBlank()) {
             this.content = content;
+            this.comment = content;
         }
         if (rating != null) {
             this.rating = rating;

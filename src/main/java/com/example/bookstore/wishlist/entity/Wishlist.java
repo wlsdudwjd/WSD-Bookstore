@@ -27,7 +27,7 @@ public class Wishlist {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "wishlist_id")
+    @Column(name = "wishlist_id", columnDefinition = "INT")
     private Integer wishlistId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -35,7 +35,7 @@ public class Wishlist {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "book_id", nullable = false)
+    @JoinColumn(name = "book_id", nullable = false, columnDefinition = "INT")
     private Book book;
 
     @Column(nullable = false)

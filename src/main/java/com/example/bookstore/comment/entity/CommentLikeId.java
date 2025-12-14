@@ -14,13 +14,13 @@ import java.io.Serializable;
 @Embeddable
 public class CommentLikeId implements Serializable {
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", columnDefinition = "INT")
     private Integer userId;
 
-    @Column(name = "comment_id")
-    private Long commentId;
+    @Column(name = "comment_id", columnDefinition = "INT")
+    private Integer commentId;
 
-    public CommentLikeId(Integer userId, Long commentId) {
+    public CommentLikeId(Integer userId, Integer commentId) {
         this.userId = userId;
         this.commentId = commentId;
     }

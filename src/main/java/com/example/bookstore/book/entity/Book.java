@@ -27,10 +27,11 @@ public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "book_id", columnDefinition = "INT")
     private Long bookId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "seller_id", nullable = false)
+    @JoinColumn(name = "seller_id", nullable = false, columnDefinition = "INT")
     private Seller seller;
 
     @Column(nullable = false, length = 255)

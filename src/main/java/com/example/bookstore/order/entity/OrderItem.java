@@ -25,16 +25,17 @@ public class OrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_item_id", columnDefinition = "INT")
     private Long orderItemId;
 
     // 어떤 주문에 속해있는지
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id", nullable = false, columnDefinition = "INT")
     private Order order;
 
     // 어떤 책인지
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id", nullable = false)
+    @JoinColumn(name = "book_id", nullable = false, columnDefinition = "INT")
     private Book book;
 
     @Column(nullable = false)
